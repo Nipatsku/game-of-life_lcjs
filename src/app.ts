@@ -11,7 +11,8 @@ import {
     SolidFill,
     ColorRGBA,
     transparentFill,
-    translatePoint
+    translatePoint,
+    UILayoutBuilders
 } from "@arction/lcjs"
 
 const chart = lightningChart().ChartXY({
@@ -299,15 +300,31 @@ const cycle = () => {
     if (simulationActive)
         requestAnimationFrame(cycle)
 }
-chart.addUIElement(UIElementBuilders.CheckBox)
+const col = chart.addUIElement(UILayoutBuilders.Column)
     .setPosition({ x: 0, y: 100 })
     .setOrigin(UIOrigins.LeftTop)
     .setPadding({top: 2, left: 4})
+const fontSize = 14
+col.addElement(UIElementBuilders.CheckBox)
     .setText('Simulation enabled')
+    .setFont((font) => font
+        .setSize(fontSize)
+    )
     .onSwitch((_, state) => {
         simulationActive = !simulationActive
         if (simulationActive)
             cycle()
+    })
+col.addElement(UIElementBuilders.ButtonBox)
+    .setText('Clear')
+    .setFont((font) => font
+        .setSize(fontSize)
+    )
+    .onSwitch((_, state) => {
+        if (state) {
+            gameOfLife.clear(gameOfLife.cellStates)
+            plot()
+        }
     })
 const getCellState = (clientX: number, clientY: number) => {
     const location = translatePoint(
