@@ -344,15 +344,18 @@ pencilSelector.addElement(UIElementBuilders.TextBox)
 interface Pencil {
     label: string,
     pattern: boolean[][]
+    draggable: boolean
 }
 const pencils: Pencil[] = [
     {
         label: 'Normal',
+        draggable: true,
         pattern: [
             [true]
         ]
     },{
         label: 'Glider',
+        draggable: false,
         pattern: [
             [false, true, false],
             [false, false, true],
@@ -432,9 +435,9 @@ rect.onMouseDown((_, e) => toggleCell(e.clientX, e.clientY))
 rect.onMouseDragStart((_, e) => {
     drawMode = ! getCellState(e.clientX, e.clientY)
 })
-rect.onMouseDrag((_, e) => toggleCell(e.clientX, e.clientY, drawMode))
+rect.onMouseDrag((_, e) => selectedPencil.draggable ? toggleCell(e.clientX, e.clientY, drawMode) : undefined)
 rect.onTouchStart((_, e) => {
     drawMode = ! getCellState(e.changedTouches[0].clientX, e.changedTouches[0].clientY)
     toggleCell(e.changedTouches[0].clientX, e.changedTouches[0].clientY)
 })
-rect.onTouchMove((_, e) => toggleCell(e.changedTouches[0].clientX, e.changedTouches[0].clientY, drawMode))
+rect.onTouchMove((_, e) => selectedPencil.draggable ? toggleCell(e.changedTouches[0].clientX, e.changedTouches[0].clientY, drawMode) : undefined)
