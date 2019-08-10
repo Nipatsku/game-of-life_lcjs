@@ -14,7 +14,8 @@ import {
     translatePoint,
     UILayoutBuilders,
     UICheckBox,
-    UIDraggingModes
+    UIDraggingModes,
+    UIButtonPictures
 } from "@arction/lcjs"
 
 const chart = lightningChart().ChartXY({
@@ -226,7 +227,7 @@ class GameOfLife {
         // cellStates[bounds.x.max][bounds.y.min] = true
         // cellStates[bounds.x.max][bounds.y.max] = true
         
-        this.createShapeC(cellStates, bounds.x.center, bounds.y.center)
+        // this.createShapeC(cellStates, bounds.x.center, bounds.y.center)
 
     }
     /**
@@ -295,7 +296,7 @@ handleResize()
 gameOfLife.initialState()
 gameOfLife.plot()
 
-let simulationActive = false
+let simulationActive = true
 const cycle = () => {
     gameOfLife.cycle()
     plot()
@@ -308,16 +309,18 @@ const col = chart.addUIElement(UILayoutBuilders.Column)
     .setPadding({top: 2, left: 4})
     .setDraggingMode(UIDraggingModes.notDraggable)
 const fontSize = 14
-col.addElement(UIElementBuilders.CheckBox)
+const toggleSimulationButton = col.addElement(UIElementBuilders.CheckBox)
     .setText('Simulation enabled')
     .setFont((font) => font
         .setSize(fontSize)
     )
-    .onSwitch((_, state) => {
-        simulationActive = !simulationActive
+toggleSimulationButton.onSwitch((_, state) => {
+        simulationActive = state
         if (simulationActive)
             cycle()
     })
+if (simulationActive)
+    toggleSimulationButton.setOn(true)
 col.addElement(UIElementBuilders.ButtonBox)
     .setText('Clear')
     .setFont((font) => font
@@ -376,7 +379,12 @@ const selectPencil = (selector, state, pencil) => {
     }
 }
 for (const pencil of pencils) {
-    const selector = pencilSelector.addElement(UIElementBuilders.CheckBox)
+    const buttonPicture = pencil.draggable ?
+        UIButtonPictures.Circle : UIButtonPictures.Rectangle
+    const selector = pencilSelector.addElement(UIElementBuilders.CheckBox
+        .setPictureOn(buttonPicture)
+        .setPictureOff(buttonPicture)
+    )
         .setText(pencil.label)
         .setFont((font) => font
             .setSize(fontSize)
@@ -417,6 +425,7 @@ const toggleCell = (clientX: number, clientY: number, state?: boolean) => {
     const pattern = selectedPencil.pattern
     const pHeight = pattern.length
     const pWidth = pattern.reduce((prev, cur) => Math.max(prev, cur.length), 0)
+
     for (let y = 0; y < pattern.length; y ++) {
         for (let x = 0; x < pattern[y].length; x ++) {
             if (pattern[y][x] === true) {
