@@ -5,7 +5,13 @@ import {
     PointShape,
     AutoCursorModes,
     PointSeries,
-    ChartXY
+    ChartXY,
+    UIElementBuilders,
+    UIOrigins,
+    SolidFill,
+    ColorRGBA,
+    transparentFill,
+    translatePoint
 } from "@arction/lcjs"
 
 const chart = lightningChart().ChartXY({
@@ -34,6 +40,7 @@ class GameOfLife {
         pointShape: PointShape.Square
     })
         .setPointSize(this.px)
+        .setMouseInteractions(false)
 
     // ----- Conway's Game of Life state information -----
     /**
@@ -216,18 +223,8 @@ class GameOfLife {
         // cellStates[bounds.x.max][bounds.y.min] = true
         // cellStates[bounds.x.max][bounds.y.max] = true
         
-        // this.createShapeC(cellStates, bounds.x.center, bounds.y.center)
+        this.createShapeC(cellStates, bounds.x.center, bounds.y.center)
 
-        for (let i = 0; i < 1000; i ++) {
-            const x = 0.2 + Math.random() * 0.6
-            const y = 0.2 + Math.random() * 0.6
-            
-            this.createShapeC(
-                cellStates,
-                Math.round(bounds.x.min + x * (bounds.x.max - bounds.x.min)),
-                Math.round(bounds.y.min + y * (bounds.y.max - bounds.y.min))
-            )
-        }
     }
     /**
      * Simple Shape that lives forever if left alone.
@@ -263,11 +260,15 @@ class GameOfLife {
 const gameOfLife = new GameOfLife(
     chart,
     // Pixel size.
-    1
+    8
 )
 const plot = () => {
     gameOfLife.plot()
 }
+const rectSeries = chart.addRectangleSeries()
+const rect = rectSeries.add({x1: 0, y1: 0, x2: 0, y2: 0})
+    .setFillStyle(transparentFill)
+    .setFillStyleHighlight(transparentFill)
 const handleResize = () => {
     const width = axisX.scale.getCellSize()
     const height = axisY.scale.getCellSize()
@@ -276,6 +277,13 @@ const handleResize = () => {
     axisY.setInterval(0, height)
     // Inform game of life.
     gameOfLife.handleResize(width, height)
+    // Update mouse picking rectangle.
+    rect.setDimensions({
+        x1: 0,
+        y1: 0,
+        x2: width,
+        y2: height
+    })
     // re-plot
     plot()
 }
@@ -283,10 +291,59 @@ chart.onResize(handleResize)
 handleResize()
 gameOfLife.initialState()
 gameOfLife.plot()
+
+let simulationActive = false
 const cycle = () => {
     gameOfLife.cycle()
     plot()
-    requestAnimationFrame(cycle)
-    // setTimeout(cycle, 500)
+    if (simulationActive)
+        requestAnimationFrame(cycle)
 }
-setTimeout(cycle, 2000)
+chart.addUIElement(UIElementBuilders.CheckBox)
+    .setPosition({ x: 0, y: 100 })
+    .setOrigin(UIOrigins.LeftTop)
+    .setPadding({top: 2, left: 4})
+    .setText('Simulation enabled')
+    .onSwitch((_, state) => {
+        simulationActive = !simulationActive
+        if (simulationActive)
+            cycle()
+    })
+const getCellState = (clientX: number, clientY: number) => {
+    const location = translatePoint(
+        chart.engine.clientLocation2Engine(clientX, clientY),
+        chart.engine.scale,
+        {
+            x: axisX.scale,
+            y: axisY.scale
+        }
+    )
+    const col = Math.round(location.x / gameOfLife.px)
+    const row = Math.round(location.y / gameOfLife.px)
+    return gameOfLife.cellStates[col][row]
+}
+const toggleCell = (clientX: number, clientY: number, state?: boolean) => {
+    const location = translatePoint(
+        chart.engine.clientLocation2Engine(clientX, clientY),
+        chart.engine.scale,
+        {
+            x: axisX.scale,
+            y: axisY.scale
+        }
+    )
+    const col = Math.round(location.x / gameOfLife.px)
+    const row = Math.round(location.y / gameOfLife.px)
+    gameOfLife.cellStates[col][row] = (state === undefined) ?
+        (gameOfLife.cellStates[col][row] === true ? false : true):
+        state
+    plot()    
+}
+let drawMode = undefined
+rect.onMouseDragStart((_, e) => {
+    drawMode = ! getCellState(e.clientX, e.clientY)
+})
+rect.onMouseDrag((_, e) => toggleCell(e.clientX, e.clientY, drawMode))
+rect.onTouchStart((_, e) => {
+    drawMode = ! getCellState(e.changedTouches[0].clientX, e.changedTouches[0].clientY)
+})
+rect.onTouchMove((_, e) => toggleCell(e.changedTouches[0].clientX, e.changedTouches[0].clientY, drawMode))
