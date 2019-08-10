@@ -12,7 +12,9 @@ import {
     ColorRGBA,
     transparentFill,
     translatePoint,
-    UILayoutBuilders
+    UILayoutBuilders,
+    UICheckBox,
+    UIDraggingModes
 } from "@arction/lcjs"
 
 const chart = lightningChart().ChartXY({
@@ -304,6 +306,7 @@ const col = chart.addUIElement(UILayoutBuilders.Column)
     .setPosition({ x: 0, y: 100 })
     .setOrigin(UIOrigins.LeftTop)
     .setPadding({top: 2, left: 4})
+    .setDraggingMode(UIDraggingModes.notDraggable)
 const fontSize = 14
 col.addElement(UIElementBuilders.CheckBox)
     .setText('Simulation enabled')
@@ -326,6 +329,63 @@ col.addElement(UIElementBuilders.ButtonBox)
             plot()
         }
     })
+const pencilSelector = chart.addUIElement(UILayoutBuilders.Row, { x: chart.getDefaultAxisX().scale, y: chart.getDefaultAxisY().scale })
+    .setPosition({ x: 0, y: 0})
+    .setOrigin(UIOrigins.LeftBottom)
+    .setPadding({bottom: 2, left: 4})
+    .setDraggingMode(UIDraggingModes.notDraggable)
+pencilSelector.addElement(UIElementBuilders.TextBox)
+    .setText('Pencil:')
+    .setFont((font) => font
+        .setSize(fontSize)
+    )
+
+// TODO: Load
+interface Pencil {
+    label: string,
+    pattern: boolean[][]
+}
+const pencils: Pencil[] = [
+    {
+        label: 'Normal',
+        pattern: [
+            [true]
+        ]
+    },{
+        label: 'Glider',
+        pattern: [
+            [false, true, false],
+            [false, false, true],
+            [true, true, true]
+        ]
+    }
+]
+const pencilSelectors: UICheckBox[] = []
+let selectedPencil: Pencil
+const selectPencil = (selector, state, pencil) => {
+    if (state) {
+        selectedPencil = pencil
+        // Disable other selectors.
+        for (const selector2 of pencilSelectors)
+            if (selector2 !== selector) {
+                selector2.setOn(false)
+            }
+    }
+}
+for (const pencil of pencils) {
+    const selector = pencilSelector.addElement(UIElementBuilders.CheckBox)
+        .setText(pencil.label)
+        .setFont((font) => font
+            .setSize(fontSize)
+        )
+    if (pencilSelectors.length === 0) {
+        selector.setOn(true)
+        selectedPencil = pencil
+    }
+    selector.onSwitch((selector, state) => selectPencil(selector, state, pencil))
+    pencilSelectors.push(selector)
+}
+
 const getCellState = (clientX: number, clientY: number) => {
     const location = translatePoint(
         chart.engine.clientLocation2Engine(clientX, clientY),
@@ -348,19 +408,33 @@ const toggleCell = (clientX: number, clientY: number, state?: boolean) => {
             y: axisY.scale
         }
     )
-    const col = Math.round(location.x / gameOfLife.px)
-    const row = Math.round(location.y / gameOfLife.px)
-    gameOfLife.cellStates[col][row] = (state === undefined) ?
-        (gameOfLife.cellStates[col][row] === true ? false : true):
-        state
+    const locationCol = location.x / gameOfLife.px
+    const locationRow = location.y / gameOfLife.px
+
+    const pattern = selectedPencil.pattern
+    const pHeight = pattern.length
+    const pWidth = pattern.reduce((prev, cur) => Math.max(prev, cur.length), 0)
+    for (let y = 0; y < pattern.length; y ++) {
+        for (let x = 0; x < pattern[y].length; x ++) {
+            if (pattern[y][x] === true) {
+                const col = Math.round(locationCol + x - pWidth / 2)
+                const row = Math.round(locationRow + y - pHeight / 2)
+                gameOfLife.cellStates[col][row] = (state === undefined) ?
+                    (gameOfLife.cellStates[col][row] === true ? false : true):
+                    state
+            }
+        }
+    }
     plot()    
 }
 let drawMode = undefined
+rect.onMouseDown((_, e) => toggleCell(e.clientX, e.clientY))
 rect.onMouseDragStart((_, e) => {
     drawMode = ! getCellState(e.clientX, e.clientY)
 })
 rect.onMouseDrag((_, e) => toggleCell(e.clientX, e.clientY, drawMode))
 rect.onTouchStart((_, e) => {
     drawMode = ! getCellState(e.changedTouches[0].clientX, e.changedTouches[0].clientY)
+    toggleCell(e.changedTouches[0].clientX, e.changedTouches[0].clientY)
 })
 rect.onTouchMove((_, e) => toggleCell(e.changedTouches[0].clientX, e.changedTouches[0].clientY, drawMode))
