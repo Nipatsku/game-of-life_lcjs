@@ -1,7 +1,7 @@
 {
-  "name": "lcjs-typescript-example",
+  "name": "lcjs-conways_game_of_life",
   "version": "1.0.0",
-  "description": "",
+  "description": "Implementation of the famous Conways Game of Life using LightningChart JS",
   "main": "index.js",
   "scripts": {
     "start": "webpack-dev-server",
