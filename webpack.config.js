@@ -31,7 +31,7 @@ module.exports = {
     },
     plugins: [
         new HtmlWebpackPlugin({
-            title: 'lcjs-typescript-example'
+            title: 'Conway\'s Game of Life'
         })
     ]
 }
