@@ -15,7 +15,12 @@ import {
     UILayoutBuilders,
     UICheckBox,
     UIDraggingModes,
-    UIButtonPictures
+    UIButtonPictures,
+    UIElementColumn,
+    UIElementLine,
+    ColorHSV,
+    IndividualPointFill,
+    ColorHEX
 } from "@arction/lcjs"
 
 const chart = lightningChart().ChartXY({
@@ -23,6 +28,8 @@ const chart = lightningChart().ChartXY({
 })
     .setTitle("Conway's Game of Life")
     .setAutoCursorMode(AutoCursorModes.disabled)
+    .setChartBackgroundFillStyle(new SolidFill({ color: ColorHEX('#fff') }))
+    .setPadding({ left: 180})
 
 const axisX = chart.getDefaultAxisX()
 const axisY = chart.getDefaultAxisY()
@@ -45,6 +52,7 @@ class GameOfLife {
     })
         .setPointSize(this.px)
         .setMouseInteractions(false)
+        .setPointFillStyle(new SolidFill({ color: ColorRGBA(100, 100, 100) }))
 
     // ----- Conway's Game of Life state information -----
     /**
@@ -332,47 +340,116 @@ col.addElement(UIElementBuilders.ButtonBox)
             plot()
         }
     })
-const pencilSelector = chart.addUIElement(UILayoutBuilders.Row, { x: chart.getDefaultAxisX().scale, y: chart.getDefaultAxisY().scale })
+const pencilSelector = chart.addUIElement(UILayoutBuilders.Row)
     .setPosition({ x: 0, y: 0})
     .setOrigin(UIOrigins.LeftBottom)
     .setPadding({bottom: 2, left: 4})
     .setDraggingMode(UIDraggingModes.notDraggable)
-pencilSelector.addElement(UIElementBuilders.TextBox)
-    .setText('Pencil:')
-    .setFont((font) => font
-        .setSize(fontSize)
-    )
-
+    
 // TODO: Load
 interface Pencil {
     label: string,
-    pattern: boolean[][]
-    draggable: boolean
+    draggable: boolean,
+    patterns: boolean[][] | { label: string, pattern: boolean[][] }[]
 }
 const pencils: Pencil[] = [
     {
-        label: 'Normal',
+        label: 'Pencil',
         draggable: true,
-        pattern: [
-            [true]
+        patterns: [
+            {
+                label: '1 px',
+                pattern: [
+                    [true]
+                ]
+            },
+            {
+                label: '2 px',
+                pattern: [
+                    [true, true],
+                    [true, true]
+                ]
+            },
+            {
+                label: '3 px',
+                pattern: [
+                    [true, true, true],
+                    [true, true, true],
+                    [true, true, true]
+                ]
+            }
         ]
     },{
         label: 'Glider',
         draggable: false,
-        pattern: [
-            [false, true, false],
-            [false, false, true],
-            [true, true, true]
+        patterns: [
+            {
+                label: '↗',
+                pattern: [
+                    [false, true, false],
+                    [false, false, true],
+                    [true, true, true]
+                ]
+            },
+            {
+                label: '↘',
+                pattern: [
+                    [true, true, true],
+                    [false, false, true],
+                    [false, true, false]
+                ]
+            },
+            {
+                label: '↖',
+                pattern: [
+                    [false, true, false],
+                    [true, false, false],
+                    [true, true, true]
+                ]
+            },
+            {
+                label: '↙',
+                pattern: [
+                    [true, true, true],
+                    [true, false, false],
+                    [false, true, false]
+                ]
+            },
+        ]
+    },{
+        label: 'Spaceship',
+        draggable: false,
+        patterns: [
+            {
+                label: '→',
+                pattern: [
+                    [false, true, true, true, true],
+                    [true, false, false, false, true],
+                    [false, false, false, false, true],
+                    [true, false, false, true, false]
+                ]
+            },
+            {
+                label: '⬅',
+                pattern: [
+                    [true, true, true, true, false],
+                    [true, false, false, false, true],
+                    [true, false, false, false, false],
+                    [false, true, false, false, true]
+                ]
+            }
         ]
     }
 ]
-const pencilSelectors: UICheckBox[] = []
-let selectedPencil: Pencil
-const selectPencil = (selector, state, pencil) => {
+const patternSelectors: UICheckBox[] = []
+let selectedPattern: boolean[][] = pencils[0].patterns as boolean[][]
+let draggingEnabled: boolean
+const selectPattern = (selector, state, pattern: boolean[][], pencil: Pencil) => {
     if (state) {
-        selectedPencil = pencil
+        selectedPattern = pattern
+        draggingEnabled = pencil.draggable
         // Disable other selectors.
-        for (const selector2 of pencilSelectors)
+        for (const selector2 of patternSelectors)
             if (selector2 !== selector) {
                 selector2.setOn(false)
             }
@@ -381,20 +458,40 @@ const selectPencil = (selector, state, pencil) => {
 for (const pencil of pencils) {
     const buttonPicture = pencil.draggable ?
         UIButtonPictures.Circle : UIButtonPictures.Rectangle
-    const selector = pencilSelector.addElement(UIElementBuilders.CheckBox
-        .setPictureOn(buttonPicture)
-        .setPictureOff(buttonPicture)
-    )
-        .setText(pencil.label)
-        .setFont((font) => font
-            .setSize(fontSize)
+    const addSelector = (layout: UIElementLine, label: string, pattern: boolean[][]) => {
+        const selector = layout.addElement(UIElementBuilders.CheckBox
+            .setPictureOn(buttonPicture)
+            .setPictureOff(buttonPicture)
         )
-    if (pencilSelectors.length === 0) {
-        selector.setOn(true)
-        selectedPencil = pencil
+            .setText(label)
+            .setFont((font) => font
+                .setSize(fontSize)
+            )
+        if (patternSelectors.length === 0) {
+            selector.setOn(true)
+            selectedPattern = pattern
+            draggingEnabled = pencil.draggable
+        }
+        selector.onSwitch((selector, state) => selectPattern(selector, state, pattern, pencil))
+        patternSelectors.push(selector)
     }
-    selector.onSwitch((selector, state) => selectPencil(selector, state, pencil))
-    pencilSelectors.push(selector)
+    const column = pencilSelector.addElement(UILayoutBuilders.Column)
+    if ('pattern' in pencil.patterns[0]) {
+        // Add Column layout for all variations of this pencil.
+       const variation = pencil.patterns as { label: string, pattern: boolean[][] }[]
+       column.addElement(UIElementBuilders.TextBox)
+            .setText(pencil.label)
+            .setFont((font) => font
+                .setSize(fontSize)
+            )
+       for (const pattern of variation) {
+           addSelector(column, pattern.label, pattern.pattern)
+       }
+    } else {
+        // Single pattern selector.
+        addSelector(column, pencil.label, pencil.patterns as boolean[][])
+    }
+    column.addGap()
 }
 
 const getCellState = (clientX: number, clientY: number) => {
@@ -422,7 +519,7 @@ const toggleCell = (clientX: number, clientY: number, state?: boolean) => {
     const locationCol = location.x / gameOfLife.px
     const locationRow = location.y / gameOfLife.px
 
-    const pattern = selectedPencil.pattern
+    const pattern = selectedPattern
     const pHeight = pattern.length
     const pWidth = pattern.reduce((prev, cur) => Math.max(prev, cur.length), 0)
 
@@ -444,9 +541,9 @@ rect.onMouseDown((_, e) => toggleCell(e.clientX, e.clientY))
 rect.onMouseDragStart((_, e) => {
     drawMode = ! getCellState(e.clientX, e.clientY)
 })
-rect.onMouseDrag((_, e) => selectedPencil.draggable ? toggleCell(e.clientX, e.clientY, drawMode) : undefined)
+rect.onMouseDrag((_, e) => draggingEnabled ? toggleCell(e.clientX, e.clientY, drawMode) : undefined)
 rect.onTouchStart((_, e) => {
     drawMode = ! getCellState(e.changedTouches[0].clientX, e.changedTouches[0].clientY)
     toggleCell(e.changedTouches[0].clientX, e.changedTouches[0].clientY)
 })
-rect.onTouchMove((_, e) => selectedPencil.draggable ? toggleCell(e.changedTouches[0].clientX, e.changedTouches[0].clientY, drawMode) : undefined)
+rect.onTouchMove((_, e) => draggingEnabled ? toggleCell(e.changedTouches[0].clientX, e.changedTouches[0].clientY, drawMode) : undefined)
