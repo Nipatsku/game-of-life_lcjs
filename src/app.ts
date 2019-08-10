@@ -1,13 +1,7 @@
 import {
     lightningChart,
-    SolidLine,
-    emptyLine,
-    SolidFill,
-    emptyFill,
-    ColorHSV,
     Axis,
     emptyTick,
-    AxisScrollStrategies,
     PointShape,
     AutoCursorModes,
     PointSeries,
@@ -55,15 +49,6 @@ class GameOfLife {
         readonly chart: ChartXY,
         readonly px: number
     ) {}
-    initialState() {
-        const { cellStates, bounds } = this.getState()
-        cellStates[bounds.x.min][bounds.y.min] = true
-        cellStates[bounds.x.min][bounds.y.max] = true
-        cellStates[bounds.x.max][bounds.y.min] = true
-        cellStates[bounds.x.max][bounds.y.max] = true
-        
-        this.createShapeA(cellStates, bounds.x.center, bounds.y.center)
-    }
     /**
      * Applies one cycle of Conway's Game of Life rules.
      */
@@ -137,6 +122,7 @@ class GameOfLife {
         const points = this.points
         points.clear()
         
+        let pointsAmount = 0
         const px = this.px
         const px2 = this.px / 2
         const cellStates = this.cellStates
@@ -150,9 +136,12 @@ class GameOfLife {
                         x: px2 + colIndex * px,
                         y: px2 + rowIndex * px
                     })
+                    pointsAmount ++
                 }
             }
         }
+
+        console.log(pointsAmount, 'points')
     }
     /**
      * Validates structure (Array length) of 'cellStates' and 'cellStatesFlipBuffer',
@@ -220,6 +209,26 @@ class GameOfLife {
             }
         }
     }
+    initialState() {
+        const { cellStates, bounds } = this.getState()
+        // cellStates[bounds.x.min][bounds.y.min] = true
+        // cellStates[bounds.x.min][bounds.y.max] = true
+        // cellStates[bounds.x.max][bounds.y.min] = true
+        // cellStates[bounds.x.max][bounds.y.max] = true
+        
+        // this.createShapeC(cellStates, bounds.x.center, bounds.y.center)
+
+        for (let i = 0; i < 1000; i ++) {
+            const x = 0.2 + Math.random() * 0.6
+            const y = 0.2 + Math.random() * 0.6
+            
+            this.createShapeC(
+                cellStates,
+                Math.round(bounds.x.min + x * (bounds.x.max - bounds.x.min)),
+                Math.round(bounds.y.min + y * (bounds.y.max - bounds.y.min))
+            )
+        }
+    }
     /**
      * Simple Shape that lives forever if left alone.
      * Serves as a simple test that the rules are working as should.
@@ -229,12 +238,32 @@ class GameOfLife {
         cellStates[x][y + 0] = true
         cellStates[x][y + 1] = true
     }
+    /**
+     *
+     */
+    createShapeB(cellStates: boolean[][], x: number, y: number) {
+        this.createShapeA(cellStates, x, y)
+        this.createShapeA(cellStates, x - 3, y)
+        this.createShapeA(cellStates, x + 3, y)
+    }
+    createShapeC(cellStates: boolean[][], x: number, y: number) {
+        this.createShapeA(cellStates, x, y)
+        this.createShapeA(cellStates, x - 3, y)
+        this.createShapeA(cellStates, x + 3, y)
+        this.createShapeA(cellStates, x + 6, y)
+        this.createShapeA(cellStates, x - 6, y)
+        this.createShapeA(cellStates, x, y + 6)
+        this.createShapeA(cellStates, x - 3, y + 6)
+        this.createShapeA(cellStates, x + 3, y + 6)
+        this.createShapeA(cellStates, x + 6, y + 6)
+        this.createShapeA(cellStates, x - 6, y + 6)
+    }
 }
 
 const gameOfLife = new GameOfLife(
     chart,
     // Pixel size.
-    10
+    1
 )
 const plot = () => {
     gameOfLife.plot()
@@ -257,6 +286,7 @@ gameOfLife.plot()
 const cycle = () => {
     gameOfLife.cycle()
     plot()
-    window.requestAnimationFrame(cycle)
+    requestAnimationFrame(cycle)
+    // setTimeout(cycle, 500)
 }
-window.requestAnimationFrame(cycle)
+setTimeout(cycle, 2000)
