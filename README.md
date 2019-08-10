@@ -10,3 +10,8 @@ Can be run locally (using webpack), by running commands:
 - npm start
 
 Open browser at **localhost:8080** to view the application.
+
+## Deployment
+
+- npm run build
+- npm run deploy
