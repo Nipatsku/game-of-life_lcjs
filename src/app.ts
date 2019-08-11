@@ -20,7 +20,9 @@ import {
     UIElementLine,
     ColorHSV,
     IndividualPointFill,
-    ColorHEX
+    ColorHEX,
+    DefaultLibraryStyle,
+    UIBackgrounds
 } from "@arction/lcjs"
 
 const chart = lightningChart().ChartXY({
@@ -29,7 +31,6 @@ const chart = lightningChart().ChartXY({
     .setTitle("Conway's Game of Life")
     .setAutoCursorMode(AutoCursorModes.disabled)
     .setChartBackgroundFillStyle(new SolidFill({ color: ColorHEX('#fff') }))
-    .setPadding({ left: 180})
 
 const axisX = chart.getDefaultAxisX()
 const axisY = chart.getDefaultAxisY()
@@ -272,7 +273,7 @@ class GameOfLife {
 const gameOfLife = new GameOfLife(
     chart,
     // Pixel size.
-    8
+    4
 )
 const plot = () => {
     gameOfLife.plot()
@@ -340,11 +341,19 @@ col.addElement(UIElementBuilders.ButtonBox)
             plot()
         }
     })
-const pencilSelector = chart.addUIElement(UILayoutBuilders.Row)
+const pencilSelector = chart.addUIElement(UILayoutBuilders.Row
+    .setBackground((UIBackgrounds.Rectangle))
+)
     .setPosition({ x: 0, y: 0})
     .setOrigin(UIOrigins.LeftBottom)
-    .setPadding({bottom: 2, left: 4})
-    .setDraggingMode(UIDraggingModes.notDraggable)
+    .setMargin({bottom: 2, left: 4})
+    .setPadding({ left: 4, right: 4 })
+    .setDraggingMode(UIDraggingModes.draggable)
+    .setBackground((background) => background
+        .setFillStyle((DefaultLibraryStyle.panelBackgroundFillStyle
+            .setA(100)    
+        ))
+    )
     
 // TODO: Load
 interface Pencil {
@@ -436,6 +445,35 @@ const pencils: Pencil[] = [
                     [true, false, false, false, true],
                     [true, false, false, false, false],
                     [false, true, false, false, true]
+                ]
+            }
+        ]
+    },{
+        label: 'Methuselahs',
+        draggable: false,
+        patterns: [
+            {
+                label: 'The R-pentomino',
+                pattern: [
+                    [false, true, true],
+                    [true, true, false],
+                    [false, true, false]
+                ]
+            },
+            {
+                label: 'Diehard',
+                pattern: [
+                    [false, false, false, false, false, false, true, false],
+                    [true, true, false, false, false, false, false, false],
+                    [false, true, false, false, false, true, true, true]
+                ]
+            },
+            {
+                label: 'Acorn',
+                pattern: [
+                    [false, true, false, false, false, false, false],
+                    [false, false, false, true, false, false, false],
+                    [true, true, false, false, true, true, true]
                 ]
             }
         ]
