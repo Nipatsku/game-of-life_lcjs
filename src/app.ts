@@ -273,7 +273,7 @@ class GameOfLife {
 const gameOfLife = new GameOfLife(
     chart,
     // Pixel size.
-    4
+    6
 )
 const plot = () => {
     gameOfLife.plot()
@@ -477,6 +477,25 @@ const pencils: Pencil[] = [
                 ]
             }
         ]
+    },{
+        label: 'Generators',
+        draggable: false,
+        patterns: [
+            {
+                label: 'Gosper glider gun',
+                pattern: [
+                    [false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, true, false, false, false, false, false, false, false, false, false, false, false],
+                    [false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, true, false, true, false, false, false, false, false, false, false, false, false, false, false],
+                    [false, false, false, false, false, false, false, false, false, false, false, false, true, true, false, false, false, false, false, false, true, true, false, false, false, false, false, false, false, false, false, false, false, false, true, true],
+                    [false, false, false, false, false, false, false, false, false, false, false, true, false, false, false, true, false, false, false, false, true, true, false, false, false, false, false, false, false, false, false, false, false, false, true, true],
+                    [true, true, false, false, false, false, false, false, false, false, true, false, false, false, false, false, true, false, false, false, true, true, false, false, false, false, false, false, false, false, false, false, false, false, false, false],
+                    [true, true, false, false, false, false, false, false, false, false, true, false, false, false, true, false, true, true, false, false, false, false, true, false, true, false, false, false, false, false, false, false, false, false, false, false],
+                    [false, false, false, false, false, false, false, false, false, false, true, false, false, false, false, false, true, false, false, false, false, false, false, false, true, false, false, false, false, false, false, false, false, false, false, false],
+                    [false, false, false, false, false, false, false, false, false, false, false, true, false, false, false, true, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false],
+                    [false, false, false, false, false, false, false, false, false, false, false, false, true, true, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false]
+                ]
+            }
+        ]
     }
 ]
 const patternSelectors: UICheckBox[] = []
@@ -565,7 +584,7 @@ const toggleCell = (clientX: number, clientY: number, state?: boolean) => {
         for (let x = 0; x < pattern[y].length; x ++) {
             if (pattern[y][x] === true) {
                 const col = Math.round(locationCol + x - pWidth / 2)
-                const row = Math.round(locationRow + y - pHeight / 2)
+                const row = Math.round(locationRow - y + pHeight / 2)
                 gameOfLife.cellStates[col][row] = (state === undefined) ?
                     (gameOfLife.cellStates[col][row] === true ? false : true):
                     state
