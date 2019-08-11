@@ -393,7 +393,7 @@ const pencils: Pencil[] = [
         draggable: false,
         patterns: [
             {
-                label: '↗',
+                label: '↘',
                 pattern: [
                     [false, true, false],
                     [false, false, true],
@@ -401,7 +401,7 @@ const pencils: Pencil[] = [
                 ]
             },
             {
-                label: '↘',
+                label: '↗',
                 pattern: [
                     [true, true, true],
                     [false, false, true],
@@ -409,7 +409,7 @@ const pencils: Pencil[] = [
                 ]
             },
             {
-                label: '↖',
+                label: '↙',
                 pattern: [
                     [false, true, false],
                     [true, false, false],
@@ -417,7 +417,7 @@ const pencils: Pencil[] = [
                 ]
             },
             {
-                label: '↙',
+                label: '↖',
                 pattern: [
                     [true, true, true],
                     [true, false, false],
@@ -482,7 +482,7 @@ const pencils: Pencil[] = [
         draggable: false,
         patterns: [
             {
-                label: 'Gosper glider gun',
+                label: 'Gosper glider gun ↘',
                 pattern: [
                     [false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, true, false, false, false, false, false, false, false, false, false, false, false],
                     [false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, true, false, true, false, false, false, false, false, false, false, false, false, false, false],
