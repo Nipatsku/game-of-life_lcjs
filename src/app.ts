@@ -49,7 +49,7 @@ hideAxis(axisRight)
 class GameOfLife {
     // ----- Rendering properties -----
     readonly points: PointSeries = this.chart.addPointSeries({
-        pointShape: PointShape.Square
+        pointShape: PointShape.Circle
     })
         .setPointSize(this.px)
         .setMouseInteractions(false)
@@ -237,7 +237,7 @@ class GameOfLife {
 const gameOfLife = new GameOfLife(
     chart,
     // Pixel size.
-    10
+    6
 )
 const plot = () => {
     gameOfLife.plot()
@@ -274,7 +274,8 @@ const cycle = () => {
     gameOfLife.cycle()
     plot()
     if (simulationActive)
-        requestAnimationFrame(cycle)
+        setTimeout(cycle, 100)
+        // requestAnimationFrame(cycle)
 }
 const col = chart.addUIElement(UILayoutBuilders.Column)
     .setPosition({ x: 0, y: 100 })
@@ -349,6 +350,16 @@ const pencils: Pencil[] = [
                     [true, true, true],
                     [true, true, true],
                     [true, true, true]
+                ]
+            },
+            {
+                label: '5 px',
+                pattern: [
+                    [true, true, true, true, true],
+                    [true, true, true, true, true],
+                    [true, true, true, true, true],
+                    [true, true, true, true, true],
+                    [true, true, true, true, true]
                 ]
             }
         ]
@@ -578,7 +589,14 @@ rect.onMouseDragStart((_, e) => {
 })
 rect.onMouseDrag((_, e) => draggingEnabled ? toggleCell(e.clientX, e.clientY, drawMode) : undefined)
 rect.onTouchStart((_, e) => {
-    drawMode = ! getCellState(e.changedTouches[0].clientX, e.changedTouches[0].clientY)
-    toggleCell(e.changedTouches[0].clientX, e.changedTouches[0].clientY)
+    for (let i = 0; i < e.changedTouches.length; i ++) {
+        drawMode = ! getCellState(e.changedTouches[i].clientX, e.changedTouches[i].clientY)
+        toggleCell(e.changedTouches[i].clientX, e.changedTouches[i].clientY)
+    }
 })
-rect.onTouchMove((_, e) => draggingEnabled ? toggleCell(e.changedTouches[0].clientX, e.changedTouches[0].clientY, drawMode) : undefined)
+rect.onTouchMove((_, e) => {
+    for (let i = 0; i < e.changedTouches.length; i ++) {
+        draggingEnabled ? toggleCell(e.changedTouches[i].clientX, e.changedTouches[i].clientY, drawMode) : undefined
+    }
+})
+
