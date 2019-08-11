@@ -231,49 +231,13 @@ class GameOfLife {
     }
     initialState() {
         const { cellStates, bounds } = this.getState()
-        // cellStates[bounds.x.min][bounds.y.min] = true
-        // cellStates[bounds.x.min][bounds.y.max] = true
-        // cellStates[bounds.x.max][bounds.y.min] = true
-        // cellStates[bounds.x.max][bounds.y.max] = true
-        
-        // this.createShapeC(cellStates, bounds.x.center, bounds.y.center)
-
-    }
-    /**
-     * Simple Shape that lives forever if left alone.
-     * Serves as a simple test that the rules are working as should.
-     */
-    createShapeA(cellStates: boolean[][], x: number, y: number) {
-        cellStates[x][y - 1] = true
-        cellStates[x][y + 0] = true
-        cellStates[x][y + 1] = true
-    }
-    /**
-     *
-     */
-    createShapeB(cellStates: boolean[][], x: number, y: number) {
-        this.createShapeA(cellStates, x, y)
-        this.createShapeA(cellStates, x - 3, y)
-        this.createShapeA(cellStates, x + 3, y)
-    }
-    createShapeC(cellStates: boolean[][], x: number, y: number) {
-        this.createShapeA(cellStates, x, y)
-        this.createShapeA(cellStates, x - 3, y)
-        this.createShapeA(cellStates, x + 3, y)
-        this.createShapeA(cellStates, x + 6, y)
-        this.createShapeA(cellStates, x - 6, y)
-        this.createShapeA(cellStates, x, y + 6)
-        this.createShapeA(cellStates, x - 3, y + 6)
-        this.createShapeA(cellStates, x + 3, y + 6)
-        this.createShapeA(cellStates, x + 6, y + 6)
-        this.createShapeA(cellStates, x - 6, y + 6)
     }
 }
 
 const gameOfLife = new GameOfLife(
     chart,
     // Pixel size.
-    6
+    10
 )
 const plot = () => {
     gameOfLife.plot()
@@ -476,6 +440,20 @@ const pencils: Pencil[] = [
                     [true, true, false, false, true, true, true]
                 ]
             }
+        ]
+    },{
+        label: 'Eater',
+        draggable: false,
+        patterns: [
+            {
+                label: '↖',
+                pattern: [
+                    [true, true, false, false],
+                    [true, false, true, false],
+                    [false, false, true, false],
+                    [false, false, true, true]
+                ]
+            },
         ]
     },{
         label: 'Generators',
