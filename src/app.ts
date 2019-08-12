@@ -49,21 +49,32 @@ hideAxis(axisRight)
 class GameOfLife {
     // ----- Rendering properties -----
     readonly points: PointSeries = this.chart.addPointSeries({
-        pointShape: PointShape.Circle
+        pointShape: PointShape.Square
     })
         .setPointSize(this.px)
         .setMouseInteractions(false)
         .setPointFillStyle(new SolidFill({ color: ColorRGBA(100, 100, 100) }))
 
+        
+    readonly deadPoints: PointSeries = this.chart.addPointSeries({
+        pointShape: PointShape.Square
+    })
+        .setPointSize(this.px)
+        .setMouseInteractions(false)
+        .setPointFillStyle(new SolidFill({ color: ColorRGBA(200, 255, 200) }))
+
     // ----- Conway's Game of Life state information -----
     /**
      * Cells "alive" states are recorded in a 2-dimensional boolean array.
+     * 
+     * 'undefined' = no cell ever existed.
+     * 'false' = a previous alive cell, now dead.
      */
-    cellStates: boolean[][] = [[]]
+    cellStates: (boolean | undefined)[][] = [[]]
     /**
      * Flip buffer for 'cellStates'. Used for efficiency in updating.
      */
-    cellStatesFlipBuffer: boolean[][] = [[]]
+    cellStatesFlipBuffer: (boolean | undefined)[][] = [[]]
 
     constructor(
         readonly chart: ChartXY,
@@ -123,7 +134,7 @@ class GameOfLife {
                 /**
                  * New cell state.
                  */
-                let C = false
+                let C = (c !== undefined) ? false : undefined
                 if ((
                     (c) && (n === 2 || n === 3)
                 ) || (
@@ -140,9 +151,11 @@ class GameOfLife {
     }
     plot() {
         const points = this.points
-        points.clear()
+        const deadPoints = this.deadPoints
         
-        let pointsAmount = 0
+        points.clear()
+        deadPoints.clear()
+
         const px = this.px
         const px2 = this.px / 2
         const cellStates = this.cellStates
@@ -150,18 +163,20 @@ class GameOfLife {
         for (let colIndex = 0; colIndex < colLen; colIndex ++) {
             const rowLen = cellStates[colIndex].length
             for (let rowIndex = 0; rowIndex < rowLen; rowIndex ++) {
-                const isCellAlive = cellStates[colIndex][rowIndex]
-                if (isCellAlive) {
+                const cellState = cellStates[colIndex][rowIndex]
+                if (cellState === true) {
                     points.add({
                         x: px2 + colIndex * px,
                         y: px2 + rowIndex * px
                     })
-                    pointsAmount ++
+                } else if (cellState === false) {
+                    deadPoints.add({
+                        x: px2 + colIndex * px,
+                        y: px2 + rowIndex * px
+                    })
                 }
             }
         }
-
-        console.log(pointsAmount, 'points')
     }
     /**
      * Validates structure (Array length) of 'cellStates' and 'cellStatesFlipBuffer',
@@ -189,8 +204,8 @@ class GameOfLife {
         for (let colIndex = 0; colIndex < newWidth; colIndex ++) {
             if (heightIncreased)
                 for (let i = prevHeight; i < newHeight; i ++) {
-                    this.cellStates[colIndex][i] = false
-                    this.cellStatesFlipBuffer[colIndex][i] = false
+                    this.cellStates[colIndex][i] = undefined
+                    this.cellStatesFlipBuffer[colIndex][i] = undefined
                 }
             else {
                 this.cellStates[colIndex].length = newHeight
@@ -225,7 +240,7 @@ class GameOfLife {
         for (let colIndex = 0; colIndex < colLen; colIndex ++) {
             const rowLen = cellStates[colIndex].length
             for (let rowIndex = 0; rowIndex < rowLen; rowIndex ++) {
-                cellStates[colIndex][rowIndex] = false
+                cellStates[colIndex][rowIndex] = undefined
             }
         }
     }
@@ -237,7 +252,7 @@ class GameOfLife {
 const gameOfLife = new GameOfLife(
     chart,
     // Pixel size.
-    6
+    8
 )
 const plot = () => {
     gameOfLife.plot()
@@ -274,8 +289,8 @@ const cycle = () => {
     gameOfLife.cycle()
     plot()
     if (simulationActive)
-        setTimeout(cycle, 100)
-        // requestAnimationFrame(cycle)
+        // setTimeout(cycle, 100)
+        requestAnimationFrame(cycle)
 }
 const col = chart.addUIElement(UILayoutBuilders.Column)
     .setPosition({ x: 0, y: 100 })
