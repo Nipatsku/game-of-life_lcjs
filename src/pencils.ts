@@ -9,7 +9,6 @@ export interface Pencil {
     draggable: boolean,
     patterns: PencilPattern | { label: string, pattern: PencilPattern }[]
 }
-// TODO: Add rotation parameter
 /**
  * Sick pattern rotation logic made by Chicken man Lucas Yap.
  * @param   pattern Pattern to rotate
@@ -29,22 +28,42 @@ const rotatePattern = (pattern: PencilPattern, count: number): PencilPattern => 
     }
     return (count > 1) ? rotatePattern(result, count - 1) : result
 }
+export const getPencilLocation = (colF: number, rowF: number) => {
+    const col = Math.round(colF)
+    const row = Math.round(rowF)
+    return {
+        col,
+        row
+    }
+}
+export const isPencilPatternInsideBounds = (gameOfLife: GameOfLife, pattern: PencilPattern, colF: number, rowF: number): boolean => {
+    const pencilLocation = getPencilLocation(colF, rowF)
+    const patternWidth = pattern.reduce((prev, cur) => Math.max(prev, cur.length), 0)
+    const patternHeight = pattern.length
+    const colCount = gameOfLife.getColumnCount()
+    const rowCount = gameOfLife.getRowCount()
+    return (
+        pencilLocation.col - Math.floor(patternWidth / 2) >= 0 && pencilLocation.col + Math.ceil(patternWidth / 2) <= colCount &&
+        pencilLocation.row - Math.floor(patternHeight / 2) >= 0 && pencilLocation.row + Math.ceil(patternHeight / 2) <= rowCount
+    )
+}
 /**
  * @param gameOfLife 
  * @param pattern 
- * @param col 
- * @param row    
+ * @param colF
+ * @param rowF    
  * @param state         Cell state to apply
  */
-export const applyPencilPattern = (gameOfLife: GameOfLife, pattern: PencilPattern, col: number, row: number, state: boolean | undefined) => {
+export const applyPencilPattern = (gameOfLife: GameOfLife, pattern: PencilPattern, colF: number, rowF: number, state: boolean | undefined) => {
+    const pencilLocation = getPencilLocation(colF, rowF)
     const patternWidth = pattern.reduce((prev, cur) => Math.max(prev, cur.length), 0)
     const patternHeight = pattern.length
 
     for (let y = 0; y < pattern.length; y ++) {
         for (let x = 0; x < pattern[y].length; x ++) {
             if (pattern[y][x] === true) {
-                const iCol = Math.round(col + x - patternWidth / 2)
-                const iRow = Math.round(row - y + patternHeight / 2)
+                const iCol = pencilLocation.col + x - Math.floor(patternWidth / 2)
+                const iRow = pencilLocation.row - y + Math.floor(patternHeight / 2)
                 gameOfLife.setCellState(iCol, iRow, state)
             }
         }

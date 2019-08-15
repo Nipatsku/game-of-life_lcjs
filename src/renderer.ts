@@ -123,12 +123,12 @@ export class GameOfLifeRenderer {
         return this.rect
     }
     /**
-     * Translates an user events location to the closest column and row.
+     * Translates an user events location to Game of Life columns and rows.
      *
      * @param event JS Event object or something with similar structure
-     * @return      Combination of column and row, **or undefined, if the location is out of bounds**
+     * @return      Column and row as doubles
      */
-    translateUserEventLocation(event: { clientX: number, clientY: number }): ({ col: number, row: number }) | undefined {
+    translateUserEventLocation(event: { clientX: number, clientY: number }): ({ colF: number, rowF: number }) {
         // Use Chart API to translate JS Event location to the Charts rendering Engine.
         const locationOnChart = this.chart.engine.clientLocation2Engine(event.clientX, event.clientY)
         
@@ -143,16 +143,11 @@ export class GameOfLifeRenderer {
                 y: this.axisY.scale
             }
         )
-        const col = Math.round(locationOnAxes.x / this.cellSizePx)
-        const row = Math.round(locationOnAxes.y / this.cellSizePx)
-        // Check if location is out of bounds.
-        if (col < 0 || col >= this.renderedState.colCount || row < 0 || row >= this.renderedState.rowCount) {
-            // Location is out of bounds.
-            return undefined
-        }
+        const colF = locationOnAxes.x / this.cellSizePx
+        const rowF = locationOnAxes.y / this.cellSizePx
         return {
-            col,
-            row
+            colF,
+            rowF
         }
     }
 

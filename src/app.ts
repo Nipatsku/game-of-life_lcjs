@@ -5,7 +5,7 @@
 
 import { GameOfLife } from './gameOfLife'
 import { GameOfLifeRenderer } from './renderer'
-import { PencilPattern, pencils, defaultPencilPattern, Pencil, defaultPencil, applyPencilPattern } from './pencils'
+import { PencilPattern, pencils, defaultPencilPattern, Pencil, defaultPencil, applyPencilPattern, isPencilPatternInsideBounds, getPencilLocation } from './pencils'
 import {
     DefaultLibraryStyle,
     UIElementBuilders,
@@ -182,23 +182,24 @@ const userEventInterface = renderer.getUserEventInterface()
 let _drawMode = undefined
 userEventInterface.onMouseDown((_, mouseEvent) => {
     const gameOfLifeLocation = renderer.translateUserEventLocation(mouseEvent)
-    if (gameOfLifeLocation) {
-        applyPencilPattern(gameOfLife, selectedPencil.pattern, gameOfLifeLocation.col, gameOfLifeLocation.row, _drawMode)
+    if (isPencilPatternInsideBounds(gameOfLife, selectedPencil.pattern, gameOfLifeLocation.colF, gameOfLifeLocation.rowF)) {
+        applyPencilPattern(gameOfLife, selectedPencil.pattern, gameOfLifeLocation.colF, gameOfLifeLocation.rowF, _drawMode)
         render()
     }
 })
 userEventInterface.onMouseDragStart((_, mouseEvent) => {
     const gameOfLifeLocation = renderer.translateUserEventLocation(mouseEvent)
-    if (gameOfLifeLocation) {
-        _drawMode = gameOfLife.getCellState(gameOfLifeLocation.col, gameOfLifeLocation.row) === true ?
+    if (isPencilPatternInsideBounds(gameOfLife, selectedPencil.pattern, gameOfLifeLocation.colF, gameOfLifeLocation.rowF)) {
+        const pencilLocation = getPencilLocation(gameOfLifeLocation.colF, gameOfLifeLocation.rowF)
+        _drawMode = gameOfLife.getCellState(pencilLocation.col, pencilLocation.row) === true ?
             undefined : true
     }
 })
 userEventInterface.onMouseDrag((_, mouseEvent) => {
     if (selectedPencil.pencil.draggable) {
         const gameOfLifeLocation = renderer.translateUserEventLocation(mouseEvent)
-        if (gameOfLifeLocation) {
-            applyPencilPattern(gameOfLife, selectedPencil.pattern, gameOfLifeLocation.col, gameOfLifeLocation.row, _drawMode)
+        if (isPencilPatternInsideBounds(gameOfLife, selectedPencil.pattern, gameOfLifeLocation.colF, gameOfLifeLocation.rowF)) {
+            applyPencilPattern(gameOfLife, selectedPencil.pattern, gameOfLifeLocation.colF, gameOfLifeLocation.rowF, _drawMode)
             render()
         }
     }
@@ -207,12 +208,14 @@ userEventInterface.onTouchStart((_, touchEvents) => {
     for (let i = 0; i < touchEvents.changedTouches.length; i ++) {
         const touchEvent = touchEvents.changedTouches[i]
         const gameOfLifeLocation = renderer.translateUserEventLocation(touchEvent)
-
-        _drawMode = gameOfLife.getCellState(gameOfLifeLocation.col, gameOfLifeLocation.row) === true ?
-            undefined : true
-
-        applyPencilPattern(gameOfLife, selectedPencil.pattern, gameOfLifeLocation.col, gameOfLifeLocation.row, _drawMode)
-        render()
+        if (isPencilPatternInsideBounds(gameOfLife, selectedPencil.pattern, gameOfLifeLocation.colF, gameOfLifeLocation.rowF)) {
+            const pencilLocation = getPencilLocation(gameOfLifeLocation.colF, gameOfLifeLocation.rowF)
+            _drawMode = gameOfLife.getCellState(pencilLocation.col, pencilLocation.row) === true ?
+                undefined : true
+    
+            applyPencilPattern(gameOfLife, selectedPencil.pattern, gameOfLifeLocation.colF, gameOfLifeLocation.rowF, _drawMode)
+            render()
+        }
     }
 })
 userEventInterface.onTouchMove((_, touchEvents) => {
@@ -220,9 +223,10 @@ userEventInterface.onTouchMove((_, touchEvents) => {
         for (let i = 0; i < touchEvents.changedTouches.length; i ++) {
             const touchEvent = touchEvents.changedTouches[i]
             const gameOfLifeLocation = renderer.translateUserEventLocation(touchEvent)
-    
-            applyPencilPattern(gameOfLife, selectedPencil.pattern, gameOfLifeLocation.col, gameOfLifeLocation.row, _drawMode)
-            render()
+            if (isPencilPatternInsideBounds(gameOfLife, selectedPencil.pattern, gameOfLifeLocation.colF, gameOfLifeLocation.rowF)) {
+                applyPencilPattern(gameOfLife, selectedPencil.pattern, gameOfLifeLocation.colF, gameOfLifeLocation.rowF, _drawMode)
+                render()
+            }
         }
     }
 })
