@@ -4,7 +4,7 @@ Using [LightningChart JS](https://www.arction.com/lightningchart-js/) for render
 
 Based on [wikipedia description](https://rosettacode.org/wiki/Conway%27s_Game_of_Life)
 
-Hosted in [GitHub](https://nipatsku.github.io/game-of-life_lcjs/)
+[Click here to see it in action](https://nipatsku.github.io/game-of-life_lcjs/)
 
 ## Running locally
 
