@@ -34,10 +34,11 @@ const handleResizeEvent = (colCount: number, rowCount: number) => {
 }
 // Creating GameOfLifeRenderer immediately calls the passed resize event handler, which initialixes 'gameOfLife'.
 const renderer = new GameOfLifeRenderer(CELL_SIZE_PX, handleResizeEvent)
-const render = () => renderer.render(gameOfLife)
 
 
 // ----- GameOfLife cycle loop -----
+// TODO: Currently actual rendering is one frame behind the user interactions.
+// This happens because LCJS updates its rendering information in its own requestAnimationFrame callback.
 /**
  * To enable / disable automatic cycle loop, just set to true / false.
  */
@@ -45,12 +46,23 @@ let simulationActive = true
 const _cycle = () => {
     if (simulationActive) {
         gameOfLife.cycle()
-        render()
+        renderer.render(gameOfLife)
     }
     // Set timeout for next cycle.
     requestAnimationFrame(_cycle)
 }
 _cycle()
+
+let _animFrameToken: number | undefined
+const refresh = () => {
+    if (simulationActive)
+        return
+    if (_animFrameToken === undefined)
+        _animFrameToken = window.requestAnimationFrame(() => {
+            _animFrameToken = undefined
+            renderer.render(gameOfLife)
+        })
+}
 
 
 
@@ -85,7 +97,7 @@ const ui_controller_clearCells = ui_controller_layout.addElement(UIElementBuilde
 ui_controller_clearCells.onSwitch((_, state) => {
     if (state) {
         gameOfLife.clear()
-        render()
+        refresh()
     }
 })
 
@@ -184,7 +196,7 @@ userEventInterface.onMouseDown((_, mouseEvent) => {
     const gameOfLifeLocation = renderer.translateUserEventLocation(mouseEvent)
     if (isPencilPatternInsideBounds(gameOfLife, selectedPencil.pattern, gameOfLifeLocation.colF, gameOfLifeLocation.rowF)) {
         applyPencilPattern(gameOfLife, selectedPencil.pattern, gameOfLifeLocation.colF, gameOfLifeLocation.rowF, _drawMode)
-        render()
+        refresh()
     }
 })
 userEventInterface.onMouseDragStart((_, mouseEvent) => {
@@ -200,7 +212,7 @@ userEventInterface.onMouseDrag((_, mouseEvent) => {
         const gameOfLifeLocation = renderer.translateUserEventLocation(mouseEvent)
         if (isPencilPatternInsideBounds(gameOfLife, selectedPencil.pattern, gameOfLifeLocation.colF, gameOfLifeLocation.rowF)) {
             applyPencilPattern(gameOfLife, selectedPencil.pattern, gameOfLifeLocation.colF, gameOfLifeLocation.rowF, _drawMode)
-            render()
+            refresh()
         }
     }
 })
@@ -214,7 +226,7 @@ userEventInterface.onTouchStart((_, touchEvents) => {
                 undefined : true
     
             applyPencilPattern(gameOfLife, selectedPencil.pattern, gameOfLifeLocation.colF, gameOfLifeLocation.rowF, _drawMode)
-            render()
+            refresh()
         }
     }
 })
@@ -225,7 +237,7 @@ userEventInterface.onTouchMove((_, touchEvents) => {
             const gameOfLifeLocation = renderer.translateUserEventLocation(touchEvent)
             if (isPencilPatternInsideBounds(gameOfLife, selectedPencil.pattern, gameOfLifeLocation.colF, gameOfLifeLocation.rowF)) {
                 applyPencilPattern(gameOfLife, selectedPencil.pattern, gameOfLifeLocation.colF, gameOfLifeLocation.rowF, _drawMode)
-                render()
+                refresh()
             }
         }
     }
