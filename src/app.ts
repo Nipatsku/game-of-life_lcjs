@@ -5,7 +5,7 @@
 
 import { GameOfLife } from './gameOfLife'
 import { GameOfLifeRenderer } from './renderer'
-import { PencilPattern, pencils, defaultPencilPattern, Pencil, defaultPencil, applyPencilPattern, isPencilPatternInsideBounds, getPencilLocation } from './pencils'
+import { PencilPattern, pencils, defaultPencilPattern, Pencil, defaultPencil, applyPencilPattern, isPencilPatternInsideBounds, getPencilLocation, rotatePattern } from './pencils'
 import {
     DefaultLibraryStyle,
     UIElementBuilders,
@@ -17,6 +17,7 @@ import {
     UIElementLine,
     UIBackgrounds
 } from "@arction/lcjs"
+import { angDeg } from './utils';
 
 const CELL_SIZE_PX = 8
 const UI_FONT_SIZE = 14
@@ -216,13 +217,16 @@ userEventInterface.onMouseDrag((_, mouseEvent) => {
     }
 })
 userEventInterface.onMouseDragStop((_, mouseEvent) => {
-    if (!selectedPencil.pencil.draggable) {
+    if (selectedPencil.pencil.draggable === false) {
         // ... TODO: Describe non-draggable
         const startLocation = _userInteractionInfo.get(id_mouse) as {clientX: number, clientY: number}
         const gameOfLifeLocation = renderer.translateUserEventLocation(startLocation)
-        if (isPencilPatternInsideBounds(gameOfLife, selectedPencil.pattern, gameOfLifeLocation.colF, gameOfLifeLocation.rowF)) {
-            // TODO: Compute angle and rotate pattern.
-            applyPencilPattern(gameOfLife, selectedPencil.pattern, gameOfLifeLocation.colF, gameOfLifeLocation.rowF, true)
+        // Compute angle and rotate pattern.
+        const ang = angDeg(startLocation.clientX, mouseEvent.clientY, mouseEvent.clientX, startLocation.clientY)
+        const rotateCount =  Math.round((360 - (ang - selectedPencil.pencil.angle)) / 90)
+        const rotatedPattern = rotatePattern(selectedPencil.pattern, rotateCount )
+        if (isPencilPatternInsideBounds(gameOfLife, rotatedPattern, gameOfLifeLocation.colF, gameOfLifeLocation.rowF)) {
+            applyPencilPattern(gameOfLife, rotatedPattern, gameOfLifeLocation.colF, gameOfLifeLocation.rowF, true)
             refresh()
         }
     }
@@ -263,15 +267,18 @@ userEventInterface.onTouchMove((_, touchEvents) => {
     }
 })
 userEventInterface.onTouchEnd((_, touchEvents) => {
-    if (! selectedPencil.pencil.draggable) {
+    if (selectedPencil.pencil.draggable === false) {
         // ... TODO: Describe non-draggable
         for (let i = 0; i < touchEvents.changedTouches.length; i ++) {
             const touchEvent = touchEvents.changedTouches[i]
             const startLocation = _userInteractionInfo.get(touchEvent.identifier) as {clientX: number, clientY: number}
             const gameOfLifeLocation = renderer.translateUserEventLocation(startLocation)
-            if (isPencilPatternInsideBounds(gameOfLife, selectedPencil.pattern, gameOfLifeLocation.colF, gameOfLifeLocation.rowF)) {
-                // TODO: Compute angle and rotate pattern.
-                applyPencilPattern(gameOfLife, selectedPencil.pattern, gameOfLifeLocation.colF, gameOfLifeLocation.rowF, true)
+            // Compute angle and rotate pattern.
+            const ang = angDeg(startLocation.clientX, touchEvent.clientY, touchEvent.clientX, startLocation.clientY)
+            const rotateCount =  Math.round((360 - (ang - selectedPencil.pencil.angle)) / 90)
+            const rotatedPattern = rotatePattern(selectedPencil.pattern, rotateCount )
+            if (isPencilPatternInsideBounds(gameOfLife, rotatedPattern, gameOfLifeLocation.colF, gameOfLifeLocation.rowF)) {
+                applyPencilPattern(gameOfLife, rotatedPattern, gameOfLifeLocation.colF, gameOfLifeLocation.rowF, true)
                 refresh()
             }
         }

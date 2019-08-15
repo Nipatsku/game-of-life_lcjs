@@ -4,17 +4,19 @@ import { GameOfLife } from "./gameOfLife";
 // There exists a vast collection of community-created patterns, that can have simply beautiful life-cycles, or perform complex mutations.
 
 export type PencilPattern = boolean[][]
-export interface Pencil {
+export type Pencil = {
     label: string,
-    draggable: boolean,
     patterns: PencilPattern | { label: string, pattern: PencilPattern }[]
-}
+} & ({ draggable: true } | { draggable: false, angle: number })
 /**
  * Sick pattern rotation logic made by Chicken man Lucas Yap.
  * @param   pattern Pattern to rotate
  * @param   count   Amount of times to rotate **clock-wise**
  */
-const rotatePattern = (pattern: PencilPattern, count: number): PencilPattern => {
+export const rotatePattern = (pattern: PencilPattern, count: number): PencilPattern => {
+    if (count === 0)
+        return pattern
+
     const arrLength = pattern[0].length
     const numArrs = pattern.length - 1
     const result = []
@@ -115,66 +117,26 @@ export const pencils: Pencil[] = [
     {
         label: 'Glider',
         draggable: false,
+        angle: 315,
         patterns: [
-            {
-                label: '↘',
-                pattern: [
-                    [false, true, false],
-                    [false, false, true],
-                    [true, true, true]
-                ]
-            },
-            {
-                label: '↗',
-                pattern: [
-                    [true, true, true],
-                    [false, false, true],
-                    [false, true, false]
-                ]
-            },
-            {
-                label: '↙',
-                pattern: [
-                    [false, true, false],
-                    [true, false, false],
-                    [true, true, true]
-                ]
-            },
-            {
-                label: '↖',
-                pattern: [
-                    [true, true, true],
-                    [true, false, false],
-                    [false, true, false]
-                ]
-            },
+            [false, true, false],
+            [false, false, true],
+            [true, true, true]
         ]
     },{
         label: 'Spaceship',
         draggable: false,
+        angle: 0,
         patterns: [
-            {
-                label: '→',
-                pattern: [
-                    [false, true, true, true, true],
-                    [true, false, false, false, true],
-                    [false, false, false, false, true],
-                    [true, false, false, true, false]
-                ]
-            },
-            {
-                label: '⬅',
-                pattern: [
-                    [true, true, true, true, false],
-                    [true, false, false, false, true],
-                    [true, false, false, false, false],
-                    [false, true, false, false, true]
-                ]
-            }
+            [false, true, true, true, true],
+            [true, false, false, false, true],
+            [false, false, false, false, true],
+            [true, false, false, true, false]
         ]
     },{
         label: 'Methuselahs',
         draggable: false,
+        angle: 0,
         patterns: [
             {
                 label: 'The R-pentomino',
@@ -204,35 +166,27 @@ export const pencils: Pencil[] = [
     },{
         label: 'Eater',
         draggable: false,
+        angle: 135,
         patterns: [
-            {
-                label: '↖',
-                pattern: [
-                    [true, true, false, false],
-                    [true, false, true, false],
-                    [false, false, true, false],
-                    [false, false, true, true]
-                ]
-            },
+            [true, true, false, false],
+            [true, false, true, false],
+            [false, false, true, false],
+            [false, false, true, true]
         ]
     },{
-        label: 'Generators',
+        label: 'Gosper glider gun',
         draggable: false,
+        angle: 315,
         patterns: [
-            {
-                label: 'Gosper glider gun ↘',
-                pattern: [
-                    [false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, true, false, false, false, false, false, false, false, false, false, false, false],
-                    [false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, true, false, true, false, false, false, false, false, false, false, false, false, false, false],
-                    [false, false, false, false, false, false, false, false, false, false, false, false, true, true, false, false, false, false, false, false, true, true, false, false, false, false, false, false, false, false, false, false, false, false, true, true],
-                    [false, false, false, false, false, false, false, false, false, false, false, true, false, false, false, true, false, false, false, false, true, true, false, false, false, false, false, false, false, false, false, false, false, false, true, true],
-                    [true, true, false, false, false, false, false, false, false, false, true, false, false, false, false, false, true, false, false, false, true, true, false, false, false, false, false, false, false, false, false, false, false, false, false, false],
-                    [true, true, false, false, false, false, false, false, false, false, true, false, false, false, true, false, true, true, false, false, false, false, true, false, true, false, false, false, false, false, false, false, false, false, false, false],
-                    [false, false, false, false, false, false, false, false, false, false, true, false, false, false, false, false, true, false, false, false, false, false, false, false, true, false, false, false, false, false, false, false, false, false, false, false],
-                    [false, false, false, false, false, false, false, false, false, false, false, true, false, false, false, true, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false],
-                    [false, false, false, false, false, false, false, false, false, false, false, false, true, true, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false]
-                ]
-            }
+            [false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, true, false, false, false, false, false, false, false, false, false, false, false],
+            [false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, true, false, true, false, false, false, false, false, false, false, false, false, false, false],
+            [false, false, false, false, false, false, false, false, false, false, false, false, true, true, false, false, false, false, false, false, true, true, false, false, false, false, false, false, false, false, false, false, false, false, true, true],
+            [false, false, false, false, false, false, false, false, false, false, false, true, false, false, false, true, false, false, false, false, true, true, false, false, false, false, false, false, false, false, false, false, false, false, true, true],
+            [true, true, false, false, false, false, false, false, false, false, true, false, false, false, false, false, true, false, false, false, true, true, false, false, false, false, false, false, false, false, false, false, false, false, false, false],
+            [true, true, false, false, false, false, false, false, false, false, true, false, false, false, true, false, true, true, false, false, false, false, true, false, true, false, false, false, false, false, false, false, false, false, false, false],
+            [false, false, false, false, false, false, false, false, false, false, true, false, false, false, false, false, true, false, false, false, false, false, false, false, true, false, false, false, false, false, false, false, false, false, false, false],
+            [false, false, false, false, false, false, false, false, false, false, false, true, false, false, false, true, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false],
+            [false, false, false, false, false, false, false, false, false, false, false, false, true, true, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false]
         ]
     }
 ]
