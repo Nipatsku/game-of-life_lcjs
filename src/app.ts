@@ -568,6 +568,23 @@ const getCellState = (clientX: number, clientY: number) => {
     const row = Math.round(location.y / gameOfLife.px)
     return gameOfLife.cellStates[col][row]
 }
+/**
+ * Sick rotation logic made by Chicken man Lucas Yap.
+ */
+const rotatePattern = (pattern: boolean[][], count: number) => {
+    const arrLength = pattern[0].length
+    const numArrs = pattern.length - 1
+    const result = []
+    for (let i = 0; i < arrLength; i ++)
+        result[i] = []
+
+    for (let elementIndex = 0; elementIndex < arrLength; elementIndex ++) {
+        for (let arrIndex = 0; arrIndex < pattern.length; arrIndex ++) {
+            result[elementIndex][numArrs - arrIndex] = pattern[arrIndex][elementIndex]
+        }
+    }
+    return (count > 1) ? rotatePattern(result, count - 1) : result
+}
 const toggleCell = (clientX: number, clientY: number, state?: boolean) => {
     const location = translatePoint(
         chart.engine.clientLocation2Engine(clientX, clientY),
@@ -580,7 +597,8 @@ const toggleCell = (clientX: number, clientY: number, state?: boolean) => {
     const locationCol = location.x / gameOfLife.px
     const locationRow = location.y / gameOfLife.px
 
-    const pattern = selectedPattern
+    // TODO: Rotation selector
+    const pattern = rotatePattern(selectedPattern, 0)
     const pHeight = pattern.length
     const pWidth = pattern.reduce((prev, cur) => Math.max(prev, cur.length), 0)
 
@@ -614,4 +632,3 @@ rect.onTouchMove((_, e) => {
         draggingEnabled ? toggleCell(e.changedTouches[i].clientX, e.changedTouches[i].clientY, drawMode) : undefined
     }
 })
-
