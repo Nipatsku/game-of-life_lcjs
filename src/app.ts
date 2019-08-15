@@ -22,9 +22,7 @@ import {
     emptyTick
 } from "@arction/lcjs"
 
-const chart = lightningChart().ChartXY({
-
-})
+const chart = lightningChart().ChartXY()
     .setTitle("Conway's Game of Life")
     .setAutoCursorMode(AutoCursorModes.disabled)
     .setChartBackgroundFillStyle(new SolidFill({ color: ColorHEX('#fff') }))
@@ -227,12 +225,8 @@ class GameOfLife {
             }
         }
     }
-    // ----- Some pure functions for handling cells in relevant ways -----
-    // ----- Creating popular shapes, etc...                         -----
-    /**
-     * Pure function for cleaning a cellState array.
-     */
-    clear(cellStates: boolean[][]) {
+    clear() {
+        const cellStates = this.cellStates
         const colLen = cellStates.length
         for (let colIndex = 0; colIndex < colLen; colIndex ++) {
             const rowLen = cellStates[colIndex].length
@@ -240,9 +234,6 @@ class GameOfLife {
                 cellStates[colIndex][rowIndex] = undefined
             }
         }
-    }
-    initialState() {
-        const { cellStates, bounds } = this.getState()
     }
 }
 
@@ -278,15 +269,13 @@ const handleResize = () => {
 }
 chart.onResize(handleResize)
 handleResize()
-gameOfLife.initialState()
-gameOfLife.plot()
+plot()
 
 let simulationActive = true
 const cycle = () => {
     gameOfLife.cycle()
     plot()
     if (simulationActive)
-        // setTimeout(cycle, 100)
         requestAnimationFrame(cycle)
 }
 const col = chart.addUIElement(UILayoutBuilders.Column)
@@ -314,7 +303,7 @@ col.addElement(UIElementBuilders.ButtonBox)
     )
     .onSwitch((_, state) => {
         if (state) {
-            gameOfLife.clear(gameOfLife.cellStates)
+            gameOfLife.clear()
             plot()
         }
     })
@@ -330,9 +319,7 @@ const pencilSelector = chart.addUIElement(UILayoutBuilders.Row
         .setFillStyle((DefaultLibraryStyle.panelBackgroundFillStyle
             .setA(100)    
         ))
-    )
-    
-// TODO: Load
+    )    
 interface Pencil {
     label: string,
     draggable: boolean,
@@ -502,7 +489,7 @@ const pencils: Pencil[] = [
 const patternSelectors: UICheckBox[] = []
 let selectedPattern: boolean[][] = pencils[0].patterns as boolean[][]
 let draggingEnabled: boolean
-const selectPattern = (selector, state, pattern: boolean[][], pencil: Pencil) => {
+const selectPattern = (selector: UICheckBox, state: boolean | undefined, pattern: boolean[][], pencil: Pencil) => {
     if (state) {
         selectedPattern = pattern
         draggingEnabled = pencil.draggable
