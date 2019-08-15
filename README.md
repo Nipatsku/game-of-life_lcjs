@@ -6,6 +6,8 @@ Based on [wikipedia description](https://rosettacode.org/wiki/Conway%27s_Game_of
 
 [Click here to see it in action](https://nipatsku.github.io/game-of-life_lcjs/)
 
+(best enjoyed with a touch screen and a pointer pen)
+
 ## Running locally
 
 Can be run locally (using webpack), by running commands:
