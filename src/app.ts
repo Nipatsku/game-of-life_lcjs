@@ -185,33 +185,44 @@ for (const pencil of pencils) {
 // ----- Handle user interaction events -----
 const userEventInterface = renderer.getUserEventInterface()
 
-/**
- * Cached state that is saved when a dragging interaction is started.
- * 
- * If user starts dragging on a dead cell / empty space, the interaction will be to create alive cells.
- * Respectively, if the dragging is started on an alive cell, the cells will be replaced with empty spaces.
- */
-let _drawMode = undefined
-userEventInterface.onMouseDown((_, mouseEvent) => {
-    const gameOfLifeLocation = renderer.translateUserEventLocation(mouseEvent)
-    if (isPencilPatternInsideBounds(gameOfLife, selectedPencil.pattern, gameOfLifeLocation.colF, gameOfLifeLocation.rowF)) {
-        applyPencilPattern(gameOfLife, selectedPencil.pattern, gameOfLifeLocation.colF, gameOfLifeLocation.rowF, _drawMode)
-        refresh()
-    }
-})
+let _userInteractionInfo = new Map<number, any>()
+const id_mouse = 0
+
 userEventInterface.onMouseDragStart((_, mouseEvent) => {
-    const gameOfLifeLocation = renderer.translateUserEventLocation(mouseEvent)
-    if (isPencilPatternInsideBounds(gameOfLife, selectedPencil.pattern, gameOfLifeLocation.colF, gameOfLifeLocation.rowF)) {
-        const pencilLocation = getPencilLocation(gameOfLifeLocation.colF, gameOfLifeLocation.rowF)
-        _drawMode = gameOfLife.getCellState(pencilLocation.col, pencilLocation.row) === true ?
-            undefined : true
+    if (selectedPencil.pencil.draggable) {
+        // For draggable pattern, draw pattern continuously, based on the cell state at the starting location.
+        const gameOfLifeLocation = renderer.translateUserEventLocation(mouseEvent)
+        if (isPencilPatternInsideBounds(gameOfLife, selectedPencil.pattern, gameOfLifeLocation.colF, gameOfLifeLocation.rowF)) {
+            const pencilLocation = getPencilLocation(gameOfLifeLocation.colF, gameOfLifeLocation.rowF)
+            _userInteractionInfo.set(id_mouse, gameOfLife.getCellState(pencilLocation.col, pencilLocation.row) === true ? undefined : true)
+        }
+    } else {
+        // ... TODO: Describe non-draggable
+        _userInteractionInfo.set(id_mouse, {
+            clientX: mouseEvent.clientX,
+            clientY: mouseEvent.clientY
+        })
     }
 })
 userEventInterface.onMouseDrag((_, mouseEvent) => {
     if (selectedPencil.pencil.draggable) {
+        // For draggable pattern, draw pattern continuously, based on the cell state at the starting location.
         const gameOfLifeLocation = renderer.translateUserEventLocation(mouseEvent)
         if (isPencilPatternInsideBounds(gameOfLife, selectedPencil.pattern, gameOfLifeLocation.colF, gameOfLifeLocation.rowF)) {
-            applyPencilPattern(gameOfLife, selectedPencil.pattern, gameOfLifeLocation.colF, gameOfLifeLocation.rowF, _drawMode)
+            const drawMode = _userInteractionInfo.get(id_mouse) as boolean | undefined
+            applyPencilPattern(gameOfLife, selectedPencil.pattern, gameOfLifeLocation.colF, gameOfLifeLocation.rowF, drawMode)
+            refresh()
+        }
+    }
+})
+userEventInterface.onMouseDragStop((_, mouseEvent) => {
+    if (!selectedPencil.pencil.draggable) {
+        // ... TODO: Describe non-draggable
+        const startLocation = _userInteractionInfo.get(id_mouse) as {clientX: number, clientY: number}
+        const gameOfLifeLocation = renderer.translateUserEventLocation(startLocation)
+        if (isPencilPatternInsideBounds(gameOfLife, selectedPencil.pattern, gameOfLifeLocation.colF, gameOfLifeLocation.rowF)) {
+            // TODO: Compute angle and rotate pattern.
+            applyPencilPattern(gameOfLife, selectedPencil.pattern, gameOfLifeLocation.colF, gameOfLifeLocation.rowF, true)
             refresh()
         }
     }
@@ -219,24 +230,48 @@ userEventInterface.onMouseDrag((_, mouseEvent) => {
 userEventInterface.onTouchStart((_, touchEvents) => {
     for (let i = 0; i < touchEvents.changedTouches.length; i ++) {
         const touchEvent = touchEvents.changedTouches[i]
-        const gameOfLifeLocation = renderer.translateUserEventLocation(touchEvent)
-        if (isPencilPatternInsideBounds(gameOfLife, selectedPencil.pattern, gameOfLifeLocation.colF, gameOfLifeLocation.rowF)) {
-            const pencilLocation = getPencilLocation(gameOfLifeLocation.colF, gameOfLifeLocation.rowF)
-            _drawMode = gameOfLife.getCellState(pencilLocation.col, pencilLocation.row) === true ?
-                undefined : true
-    
-            applyPencilPattern(gameOfLife, selectedPencil.pattern, gameOfLifeLocation.colF, gameOfLifeLocation.rowF, _drawMode)
-            refresh()
+        if (selectedPencil.pencil.draggable) {
+            // For draggable pattern, draw pattern continuously, based on the cell state at the starting location.
+            const gameOfLifeLocation = renderer.translateUserEventLocation(touchEvent)
+            if (isPencilPatternInsideBounds(gameOfLife, selectedPencil.pattern, gameOfLifeLocation.colF, gameOfLifeLocation.rowF)) {
+                const pencilLocation = getPencilLocation(gameOfLifeLocation.colF, gameOfLifeLocation.rowF)
+                _userInteractionInfo.set(touchEvent.identifier, gameOfLife.getCellState(pencilLocation.col, pencilLocation.row) === true ? undefined : true)
+            }
+        } else {
+            // ... TODO: Describe non-draggable
+            _userInteractionInfo.set(touchEvent.identifier, {
+                clientX: touchEvent.clientX,
+                clientY: touchEvent.clientY
+            })
         }
+
+        
     }
 })
 userEventInterface.onTouchMove((_, touchEvents) => {
     if (selectedPencil.pencil.draggable) {
+        // For draggable pattern, draw pattern continuously, based on the cell state at the starting location.
         for (let i = 0; i < touchEvents.changedTouches.length; i ++) {
             const touchEvent = touchEvents.changedTouches[i]
             const gameOfLifeLocation = renderer.translateUserEventLocation(touchEvent)
             if (isPencilPatternInsideBounds(gameOfLife, selectedPencil.pattern, gameOfLifeLocation.colF, gameOfLifeLocation.rowF)) {
-                applyPencilPattern(gameOfLife, selectedPencil.pattern, gameOfLifeLocation.colF, gameOfLifeLocation.rowF, _drawMode)
+                const drawMode = _userInteractionInfo.get(touchEvent.identifier) as boolean | undefined
+                applyPencilPattern(gameOfLife, selectedPencil.pattern, gameOfLifeLocation.colF, gameOfLifeLocation.rowF, drawMode)
+                refresh()
+            }
+        }
+    }
+})
+userEventInterface.onTouchEnd((_, touchEvents) => {
+    if (! selectedPencil.pencil.draggable) {
+        // ... TODO: Describe non-draggable
+        for (let i = 0; i < touchEvents.changedTouches.length; i ++) {
+            const touchEvent = touchEvents.changedTouches[i]
+            const startLocation = _userInteractionInfo.get(touchEvent.identifier) as {clientX: number, clientY: number}
+            const gameOfLifeLocation = renderer.translateUserEventLocation(startLocation)
+            if (isPencilPatternInsideBounds(gameOfLife, selectedPencil.pattern, gameOfLifeLocation.colF, gameOfLifeLocation.rowF)) {
+                // TODO: Compute angle and rotate pattern.
+                applyPencilPattern(gameOfLife, selectedPencil.pattern, gameOfLifeLocation.colF, gameOfLifeLocation.rowF, true)
                 refresh()
             }
         }

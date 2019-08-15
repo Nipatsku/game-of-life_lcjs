@@ -39,20 +39,19 @@ export class GameOfLifeRenderer {
         .setFillStyleHighlight(transparentFill)
 
     // ----- Series used for rendering Game of Life -----
-    readonly points: PointSeries = this.chart.addPointSeries({
-        pointShape: PointShape.Square
-    })
-        .setPointSize(this.cellSizePx)
-        .setMouseInteractions(false)
-        .setPointFillStyle(new SolidFill({ color: ColorRGBA(100, 100, 100) }))
-
-        
     readonly deadPoints: PointSeries = this.chart.addPointSeries({
         pointShape: PointShape.Square
     })
         .setPointSize(this.cellSizePx)
         .setMouseInteractions(false)
         .setPointFillStyle(new SolidFill({ color: ColorRGBA(200, 255, 200) }))
+        
+    readonly points: PointSeries = this.chart.addPointSeries({
+        pointShape: PointShape.Square
+    })
+        .setPointSize(this.cellSizePx)
+        .setMouseInteractions(false)
+        .setPointFillStyle(new SolidFill({ color: ColorRGBA(100, 100, 100) }))
 
     /**
      * Cached state for handling user interactions.
