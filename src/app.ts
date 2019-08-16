@@ -222,7 +222,7 @@ userEventInterface.onMouseDragStart((_, mouseEvent) => {
             refresh()
         }
     } else {
-        // ... TODO: Describe non-draggable
+        // Non-Draggable patterns are triggered when dragging is stopped.
         _userInteractionInfo.set(id_mouse, {
             clientX: mouseEvent.clientX,
             clientY: mouseEvent.clientY
@@ -242,7 +242,7 @@ userEventInterface.onMouseDrag((_, mouseEvent) => {
 })
 userEventInterface.onMouseDragStop((_, mouseEvent) => {
     if (selectedPencil.pencil.draggable === false) {
-        // ... TODO: Describe non-draggable
+        // Non-Draggable patterns are triggered when dragging is stopped.
         const startLocation = _userInteractionInfo.get(id_mouse) as {clientX: number, clientY: number}
         const gameOfLifeLocation = renderer.translateUserEventLocation(startLocation)
         // Compute angle and rotate pattern.
@@ -269,7 +269,7 @@ userEventInterface.onTouchStart((_, touchEvents) => {
                 refresh()
             }
         } else {
-            // ... TODO: Describe non-draggable
+            // Non-Draggable patterns are triggered when dragging is stopped.
             _userInteractionInfo.set(touchEvent.identifier, {
                 clientX: touchEvent.clientX,
                 clientY: touchEvent.clientY
@@ -295,7 +295,7 @@ userEventInterface.onTouchMove((_, touchEvents) => {
 })
 userEventInterface.onTouchEnd((_, touchEvents) => {
     if (selectedPencil.pencil.draggable === false) {
-        // ... TODO: Describe non-draggable
+        // Non-Draggable patterns are triggered when dragging is stopped.
         for (let i = 0; i < touchEvents.changedTouches.length; i ++) {
             const touchEvent = touchEvents.changedTouches[i]
             const startLocation = _userInteractionInfo.get(touchEvent.identifier) as {clientX: number, clientY: number}
