@@ -19,7 +19,7 @@ import {
 } from "@arction/lcjs"
 import { angDeg } from './utils';
 
-const CELL_SIZE_PX = 8
+const CELL_SIZE_PX = 6
 const UI_FONT_SIZE = 14
 
 
