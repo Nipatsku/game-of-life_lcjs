@@ -21,6 +21,11 @@ import {
  */
 export class GameOfLifeRenderer {
 
+    // ----- Configuration -----
+    renderDeadCells: boolean = false
+
+
+
     readonly chart = lightningChart().ChartXY()
         .setTitle("Conway's Game of Life")
         .setAutoCursorMode(AutoCursorModes.disabled)
@@ -45,7 +50,7 @@ export class GameOfLifeRenderer {
         .setPointSize(this.cellSizePx)
         .setMouseInteractions(false)
         .setPointFillStyle(new SolidFill({ color: ColorRGBA(200, 255, 200) }))
-        
+
     readonly points: PointSeries = this.chart.addPointSeries({
         pointShape: PointShape.Square
     })
@@ -96,7 +101,7 @@ export class GameOfLifeRenderer {
                         x: px2 + colIndex * px,
                         y: px2 + rowIndex * px
                     })
-                } else if (cellState === false) {
+                } else if (this.renderDeadCells && cellState === false) {
                     deadPoints.add({
                         x: px2 + colIndex * px,
                         y: px2 + rowIndex * px

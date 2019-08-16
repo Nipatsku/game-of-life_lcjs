@@ -183,6 +183,26 @@ for (const pencil of pencils) {
 
 
 
+// (3) Config options for GameOfLife.
+
+const ui_config_layout = chart.addUIElement(UILayoutBuilders.Column)
+    .setPosition({ x: 100, y: 100 })
+    .setOrigin(UIOrigins.RightTop)
+    .setPadding({top: 2, right: 4})
+    .setDraggingMode(UIDraggingModes.notDraggable)
+
+const ui_config_renderDeadCells = ui_config_layout.addElement(UIElementBuilders.CheckBox)
+    .setText('Render dead cells')
+    .setFont((font) => font
+        .setSize(UI_FONT_SIZE)
+    )
+    .setOn(renderer.renderDeadCells)
+ui_config_renderDeadCells.onSwitch((_, state) => {
+    renderer.renderDeadCells = state
+    refresh()
+})
+
+
 // ----- Handle user interaction events -----
 const userEventInterface = renderer.getUserEventInterface()
 
