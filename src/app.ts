@@ -40,23 +40,25 @@ const renderer = new GameOfLifeRenderer(CELL_SIZE_PX, handleResizeEvent)
 // ----- GameOfLife cycle loop -----
 // TODO: Currently actual rendering is one frame behind the user interactions.
 // This happens because LCJS updates its rendering information in its own requestAnimationFrame callback.
-/**
- * To enable / disable automatic cycle loop, just set to true / false.
- */
-let simulationActive = true
+enum SimulationMode { Normal, Slow, Disabled }
+let simulationMode: SimulationMode = SimulationMode.Normal as SimulationMode
+let simulationModeConfig: SimulationMode.Normal | SimulationMode.Slow = SimulationMode.Normal as SimulationMode.Normal | SimulationMode.Slow
 const _cycle = () => {
-    if (simulationActive) {
+    if (simulationMode !== SimulationMode.Disabled) {
         gameOfLife.cycle()
         renderer.render(gameOfLife)
     }
     // Set timeout for next cycle.
-    requestAnimationFrame(_cycle)
+    if (simulationMode !== SimulationMode.Slow)
+        requestAnimationFrame(_cycle)
+    else
+        setTimeout(_cycle, 500)
 }
 _cycle()
 
 let _animFrameToken: number | undefined
 const refresh = () => {
-    if (simulationActive)
+    if (simulationMode === SimulationMode.Normal)
         return
     if (_animFrameToken === undefined)
         _animFrameToken = window.requestAnimationFrame(() => {
@@ -87,8 +89,11 @@ const ui_controller_simulationEnabled = ui_controller_layout.addElement(UIElemen
     .setFont((font) => font
         .setSize(UI_FONT_SIZE)
     )
-    .setOn(simulationActive)
-ui_controller_simulationEnabled.onSwitch((_, state) => simulationActive = state)
+    .setOn(simulationMode !== SimulationMode.Disabled)
+ui_controller_simulationEnabled.onSwitch((_, state) => {
+    simulationMode = state ?
+        simulationModeConfig : SimulationMode.Disabled
+})
 
 const ui_controller_clearCells = ui_controller_layout.addElement(UIElementBuilders.ButtonBox)
     .setText('Clear')
@@ -201,6 +206,20 @@ const ui_config_renderDeadCells = ui_config_layout.addElement(UIElementBuilders.
 ui_config_renderDeadCells.onSwitch((_, state) => {
     renderer.renderDeadCells = state
     refresh()
+})
+
+const ui_config_simulationSpeed = ui_config_layout.addElement(UIElementBuilders.CheckBox)
+    .setText('Slow simulation')
+    .setFont((font) => font
+        .setSize(UI_FONT_SIZE)
+    )
+    // TODO: Read config from localStorage.
+    .setOn(simulationModeConfig === SimulationMode.Slow)
+ui_config_simulationSpeed.onSwitch((_, state) => {
+    simulationModeConfig = state ?
+        SimulationMode.Slow : SimulationMode.Normal
+    if (simulationMode !== SimulationMode.Disabled)
+        simulationMode = simulationModeConfig
 })
 
 
