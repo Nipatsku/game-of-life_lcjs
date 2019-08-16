@@ -196,6 +196,7 @@ const ui_config_renderDeadCells = ui_config_layout.addElement(UIElementBuilders.
     .setFont((font) => font
         .setSize(UI_FONT_SIZE)
     )
+    // TODO: Read config from localStorage.
     .setOn(renderer.renderDeadCells)
 ui_config_renderDeadCells.onSwitch((_, state) => {
     renderer.renderDeadCells = state
@@ -215,7 +216,10 @@ userEventInterface.onMouseDragStart((_, mouseEvent) => {
         const gameOfLifeLocation = renderer.translateUserEventLocation(mouseEvent)
         if (isPencilPatternInsideBounds(gameOfLife, selectedPencil.pattern, gameOfLifeLocation.colF, gameOfLifeLocation.rowF)) {
             const pencilLocation = getPencilLocation(gameOfLifeLocation.colF, gameOfLifeLocation.rowF)
-            _userInteractionInfo.set(id_mouse, gameOfLife.getCellState(pencilLocation.col, pencilLocation.row) === true ? undefined : true)
+            const drawMode = gameOfLife.getCellState(pencilLocation.col, pencilLocation.row) === true ? undefined : true
+            _userInteractionInfo.set(id_mouse, drawMode)
+            applyPencilPattern(gameOfLife, selectedPencil.pattern, gameOfLifeLocation.colF, gameOfLifeLocation.rowF, drawMode)
+            refresh()
         }
     } else {
         // ... TODO: Describe non-draggable
@@ -259,7 +263,10 @@ userEventInterface.onTouchStart((_, touchEvents) => {
             const gameOfLifeLocation = renderer.translateUserEventLocation(touchEvent)
             if (isPencilPatternInsideBounds(gameOfLife, selectedPencil.pattern, gameOfLifeLocation.colF, gameOfLifeLocation.rowF)) {
                 const pencilLocation = getPencilLocation(gameOfLifeLocation.colF, gameOfLifeLocation.rowF)
-                _userInteractionInfo.set(touchEvent.identifier, gameOfLife.getCellState(pencilLocation.col, pencilLocation.row) === true ? undefined : true)
+                const drawMode = gameOfLife.getCellState(pencilLocation.col, pencilLocation.row) === true ? undefined : true
+                _userInteractionInfo.set(touchEvent.identifier, drawMode)
+                applyPencilPattern(gameOfLife, selectedPencil.pattern, gameOfLifeLocation.colF, gameOfLifeLocation.rowF, drawMode)
+                refresh()
             }
         } else {
             // ... TODO: Describe non-draggable
